@@ -38,7 +38,7 @@ class Activation_Softmax:
         self.output = probabilities
 
 # Load the dataset
-X, y = spiral_data(samples=100, classes=3)
+X, y = spiral_data(samples=300, classes=3)
 
 # Initialize nnfs for reproducibility
 nnfs.init()
