@@ -99,13 +99,20 @@ class Optimizer_SGD:
         self.iterations += 1
 
 # Generate spiral dataset
-X, y = spiral_data(samples=100, classes=3)
+X, y = spiral_data(samples=300, classes=3)
 
 # Create layers and activations
 dense1 = Layer_Dense(2, 64)
 activation1 = Activation_ReLU()
-dense2 = Layer_Dense(64, 3)
-activation2 = Activation_Softmax()
+
+dense2 = Layer_Dense(64, 64)  
+activation2 = Activation_ReLU()  
+
+dense3 = Layer_Dense(64, 32)  
+activation3 = Activation_ReLU() 
+
+dense4 = Layer_Dense(32, 3)  
+activation4 = Activation_Softmax()
 
 # Load model parameters if available
 try:
@@ -115,31 +122,46 @@ try:
         dense1.biases = saved_model['dense1_biases']
         dense2.weights = saved_model['dense2_weights']
         dense2.biases = saved_model['dense2_biases']
+        dense3.weights = saved_model['dense3_weights']
+        dense3.biases = saved_model['dense3_biases']
+        dense4.weights = saved_model['dense4_weights']
+        dense4.biases = saved_model['dense4_biases']
         print("Model parameters loaded successfully.")
 except FileNotFoundError:
     print("No saved model found. Initializing a new model with random weights.")
 
 loss_function = Loss_CategoricalCrossentropy()
-optimizer = Optimizer_SGD(learning_rate=0.1, decay=1e-4, momentum=0.9)
+optimizer = Optimizer_SGD(learning_rate=0.01, decay=1e-4, momentum=0.9)
 
 # Training loop
 epochs = 1500000
-target_accuracy = 0.98
+target_accuracy = 0.60
 for epoch in range(epochs):
     # Forward pass
     dense1.forward(X)
     activation1.forward(dense1.output)
+    
     dense2.forward(activation1.output)
     activation2.forward(dense2.output)
 
+    dense3.forward(activation2.output)
+    activation3.forward(dense3.output)
+
+    dense4.forward(activation3.output)
+    activation4.forward(dense4.output)
+
     # Calculate loss and accuracy
-    loss = loss_function.calculate(activation2.output, y)
-    predictions = np.argmax(activation2.output, axis=1)
+    loss = loss_function.calculate(activation4.output, y)
+    predictions = np.argmax(activation4.output, axis=1)
     accuracy = np.mean(predictions == y)
 
     # Backward pass
-    loss_function.backward(activation2.output, y)
-    activation2.backward(loss_function.dinputs)
+    loss_function.backward(activation4.output, y)
+    activation4.backward(loss_function.dinputs)
+    dense4.backward(activation4.dinputs)
+    activation3.backward(dense4.dinputs)
+    dense3.backward(activation3.dinputs)
+    activation2.backward(dense3.dinputs)
     dense2.backward(activation2.dinputs)
     activation1.backward(dense2.dinputs)
     dense1.backward(activation1.dinputs)
@@ -148,6 +170,8 @@ for epoch in range(epochs):
     optimizer.pre_update_params()
     optimizer.update_params(dense1)
     optimizer.update_params(dense2)
+    optimizer.update_params(dense3)
+    optimizer.update_params(dense4)
     optimizer.post_update_params()
 
     # Print progress every 1000 epochs
@@ -162,12 +186,11 @@ for epoch in range(epochs):
                 'dense1_weights': dense1.weights,
                 'dense1_biases': dense1.biases,
                 'dense2_weights': dense2.weights,
-                'dense2_biases': dense2.biases
+                'dense2_biases': dense2.biases,
+                'dense3_weights': dense3.weights,
+                'dense3_biases': dense3.biases,
+                'dense4_weights': dense4.weights,
+                'dense4_biases': dense4.biases
             }, file)
         print("Model parameters saved.")
         break
-
-
-'''
-After training we have a reported accuracy of 0.98 and a loss of 0.083
-'''

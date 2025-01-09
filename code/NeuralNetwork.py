@@ -49,24 +49,40 @@ saved_model = load_model()
 if saved_model:
     # Create the layers and activations
     dense1 = Layer_Dense(2, 64)
-    dense2 = Layer_Dense(64, 3)
-    
+    dense2 = Layer_Dense(64, 64)
+    dense3 = Layer_Dense(64, 32)
+    dense4 = Layer_Dense(32, 3)
+
     # Assign the saved weights and biases
     dense1.weights = saved_model['dense1_weights']
     dense1.biases = saved_model['dense1_biases']
     dense2.weights = saved_model['dense2_weights']
     dense2.biases = saved_model['dense2_biases']
-    
+    dense3.weights = saved_model['dense3_weights']
+    dense3.biases = saved_model['dense3_biases']
+    dense4.weights = saved_model['dense4_weights']
+    dense4.biases = saved_model['dense4_biases']
+
     activation1 = Activation_ReLU()
-    activation2 = Activation_Softmax()
+    activation2 = Activation_ReLU()
+    activation3 = Activation_ReLU()
+    activation4 = Activation_Softmax()
 
     # Perform a forward pass to get predictions
     dense1.forward(X)
     activation1.forward(dense1.output)
     dense2.forward(activation1.output)
     activation2.forward(dense2.output)
+    dense3.forward(activation2.output)
+    activation3.forward(dense3.output)
+    dense4.forward(activation3.output)
+    activation4.forward(dense4.output)
 
-    predictions = np.argmax(activation2.output, axis=1)
+    predictions = np.argmax(activation4.output, axis=1)
+
+    # Calculate accuracy
+    accuracy = np.mean(predictions == y)
+    print(f"Accuracy: {accuracy * 100:.2f}%")
 
     # Plot the original spiral data
     plt.figure(figsize=(12, 6))
