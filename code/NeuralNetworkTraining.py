@@ -109,7 +109,7 @@ activation2 = Activation_Softmax()
 
 # Load model parameters if available
 try:
-    with open('model_weights_and_biases.pkl', 'rb') as file:
+    with open('code/model_weights_and_biases.pkl', 'rb') as file:
         saved_model = pickle.load(file)
         dense1.weights = saved_model['dense1_weights']
         dense1.biases = saved_model['dense1_biases']
@@ -123,7 +123,7 @@ loss_function = Loss_CategoricalCrossentropy()
 optimizer = Optimizer_SGD(learning_rate=0.1, decay=1e-4, momentum=0.9)
 
 # Training loop
-epochs = 1000000
+epochs = 1500000
 target_accuracy = 0.98
 for epoch in range(epochs):
     # Forward pass
